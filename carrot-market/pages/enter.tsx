@@ -1,13 +1,38 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import cls from '../libs/client/utils';
+import Input from '../components/input';
+import useMutation from "../libs/client/useMutation";
 
-function custCls(...classNames:string[]) {
-    return classNames.join(" ");
+
+interface EnterForm {
+  email? : string,
+  phone? : string
 }
 
 export default function Enter() {
+  const [enter,{loading,data,error}] = useMutation("/api/users/enter");
+
+  const { register, watch ,reset, handleSubmit } = useForm<EnterForm>();
   const [method, setMethod] = useState<"email" | "phone">("email");
-  const onEmailClick = () => setMethod("email");
-  const onPhoneClick = () => setMethod("phone");
+  const onEmailClick = () => {reset(); setMethod("email")};
+  const onPhoneClick = () => {reset(); setMethod("phone")};
+
+  const onValid = (validForm:EnterForm) => {
+    // fetch("/api/users/enter", {
+    //   method:"POST",
+    //   body:JSON.stringify(data),
+    //   headers: {
+    //     "Content-Type":"application/json"
+    //   }
+    // })
+    enter(validForm);
+  }
+
+  // const onSub = (event:any) => {
+  //   event.preventDefault();
+  //   console.log(event)
+  // }
   return (
     <div className="mt-16 px-4">
       <h3 className="text-3xl font-bold text-center">Enter to Carrot</h3>
@@ -15,16 +40,34 @@ export default function Enter() {
         <div className="flex flex-col items-center">
           <h5 className="text-sm text-gray-500 font-medium">Enter using:</h5>
           <div className="grid border-b w-full mt-8 grid-cols-2 gap-16">
-            <button onClick={onEmailClick} className={custCls("pd-4 font-medium ",method==="email" ? 'border-b-2 border-orange-500 text-orange-500' : "border-transparent")}>
+            <button onClick={onEmailClick} className={cls("pd-4 font-medium ",method==="email" ? 'border-b-2 border-orange-500 text-orange-500' : "border-transparent")}>
                 Email address
             </button>
-            <button onClick={onPhoneClick} className={custCls("pd-4 font-medium",method==="phone" ? 'border-b-2 border-orange-500  text-orange-500' : "border-transparent")}  >
+            <button onClick={onPhoneClick} className={cls("pd-4 font-medium",method==="phone" ? 'border-b-2 border-orange-500  text-orange-500' : "border-transparent")}  >
                 Phone Number
             </button>
           </div>
         </div>
-        <form className="flex flex-col mt-8">
-          <label className="text-sm font-medium text-gray-700">
+        <form onSubmit={handleSubmit(onValid)} className="flex flex-col mt-8 space-y-4">
+          {method === "email" ? (
+            <Input
+              register={register("email",{required:true})}
+              name="email"
+              label="email address"
+              type="email"
+            />
+          ): null}
+          {
+            method === "phone" ? (
+              <Input
+              register={register("phone",{required:true})}
+              name="phone"
+              label="phone Number"
+              type="number"
+              />
+            ) : null
+          }
+          {/* <label className="text-sm font-medium text-gray-700">
             {method === "email" ? "Email address" : null}
             {method === "phone" ? "Phone number" : null}
           </label>
@@ -36,7 +79,7 @@ export default function Enter() {
                 <input type="number" className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-l-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500" required />
               </div>
             ) : null}
-          </div>
+          </div> */}
           <button className="mt-6 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 focus:outline-none ">
             {method === "email" ? "Get login link" : null}
             {method === "phone" ? "Get one-time password" : null}
