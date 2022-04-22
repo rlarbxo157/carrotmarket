@@ -28,6 +28,7 @@ export default function Enter() {
     // })
     enter(validForm);
   }
+  console.log(data);
 
   // const onSub = (event:any) => {
   //   event.preventDefault();

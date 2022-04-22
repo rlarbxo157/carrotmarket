@@ -1,50 +1,67 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import client from '../../../libs/server/client';
-import withHandler from "../../../libs/server/withHandler";
+import withHandler, {ResponseType} from "../../../libs/server/withHandler";
+import twilio from 'twilio';
+
+const twilioClient = twilio(process.env.TWILIO_SID,process.env.TWILIO_TOKEN);
 
 export default async function handler(
-    req:NextApiRequest,res:NextApiResponse
+    req:NextApiRequest,res:NextApiResponse<ResponseType>
 ){
     const { phone, email} = req.body;
-    const payload = phone ? {phone:+phone} : {email};
+    // const payload = phone ? {phone:+phone} : {email};
+    const user = phone ? {phone:+phone} : email ? {email} : null;
 
-    const user = await client.user.upsert({
-        where: {
-            ...payload
-        },
-        create:{
-            name:'Anonymous',
-            ...payload
-        },
-        update: {},
-    });
+    if(!user) return res.status(400).json({ok:false})
+    const payload = Math.floor(100000 + Math.random() * 900000) + "";
+    // const user = await client.user.upsert({
+    //     where: {
+    //         ...payload
+    //     },
+    //     create:{
+    //         name:'Anonymous',
+    //         ...payload
+    //     },
+    //     update: {},
+    // });
 
+    // const token = await client.token.create({
+    //     data: {
+    //         payload:"1234",
+    //         user:{
+    //             connect: {
+    //                 id: user.id
+    //             }
+    //         }
+    //     }
+    // });
     const token = await client.token.create({
         data: {
-            payload:"1234",
-            user:{
-                connect: {
-                    id: user.id
+            payload:payload,
+            user: {
+                connectOrCreate: {
+                    where: {
+                        ...user,
+                    },
+                    create: {
+                        name:"Anonymous",
+                        ...user,
+                    },
                 }
             }
         }
     });
+    if(phone){
+        // const message = await twilioClient.messages.create({
+        //     messagingServiceSid: process.env.TWILIO_MSID,
+        //     to: process.env.PHONE!,
+        //     body:`your login token is ${payload}`
+        // })
+    }
 
-    console.log(token);
-    
-
-    // let user;
-    // user = await client.user.upsert({
-    //     where: {
-    //         phone: +phone
-    //     },
-    //     create: {
-    //         name:"Anonymous",
-    //         phone: +phone,
-    //     },
-    //     update: {}
-    // })
-    return res.status(200).end();
+    return res.json({
+        ok:true,
+    })
 }
 
 // export default withHandler("POST",handler);
@@ -108,3 +125,17 @@ export default async function handler(
     //     }
     //     console.log(user);
     // }
+
+
+
+    // let user;
+    // user = await client.user.upsert({
+    //     where: {
+    //         phone: +phone
+    //     },
+    //     create: {
+    //         name:"Anonymous",
+    //         phone: +phone,
+    //     },
+    //     update: {}
+    // })
