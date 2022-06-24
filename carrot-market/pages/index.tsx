@@ -17,7 +17,6 @@ const Home: NextPage = () => {
             hearts={1}
           />
         ))}
-        asd
         <FloatingButton href="/items/upload">
           <svg
             className="h-6 w-6"
